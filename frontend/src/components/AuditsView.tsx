@@ -93,7 +93,7 @@ export const AuditsView: React.FC = () => {
               <Layers className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-bold text-white">{totalAudits}</div>
-            <div className="text-[10px] text-slate-500 mt-1">Stored in SQLite audit.db</div>
+            <div className="text-[10px] text-slate-500 mt-1">Stored in Neon PostgreSQL</div>
           </div>
 
           <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 glass-panel">

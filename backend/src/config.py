@@ -32,6 +32,12 @@ class Settings(BaseModel):
     max_support_retries: int = int(os.getenv("MAX_SUPPORT_RETRIES", "2"))
     max_retrieval_rewrites: int = int(os.getenv("MAX_RETRIEVAL_REWRITES", "2"))
     max_web_rewrites: int = int(os.getenv("MAX_WEB_REWRITES", "2"))
+
+    # Database Configuration (Neon PostgreSQL via SQLAlchemy)
+    database_url: str = os.getenv(
+        "DATABASE_URL",
+        "postgresql://neondb_owner:npg_i5UvDM7ogQbj@ep-proud-thunder-b46b3rk4-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
+    )
     database_path: str = os.getenv("DATABASE_PATH", "data/audit.db")
 
     @property
