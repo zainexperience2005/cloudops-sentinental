@@ -1,25 +1,17 @@
-"""
-CloudOps Sentinel - FastAPI REST Application
-=============================================
-
-Exposes REST endpoints for incident response Q&A, runbook ingestion,
-and audit trail inspection.
-"""
-
 from pathlib import Path
 import shutil
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
-from dotenv import load_dotenv
 
+
+from fastapi.middleware.cors import CORSMiddleware
 from src.models import ChatRequest, ChatResponse, UploadResponse
 from src.self_rag import run_self_rag
 from src.ingestion import ingest_file, namespace, SUPPORTED
 from src.db import init_db, save_audit, latest_audits
+from dotenv import load_dotenv
 
-# Load environment configuration from .env
-load_dotenv()
+load_dotenv()  # Load environment variables from .env file
 
 ROOT = Path(__file__).resolve().parent
 UPLOADS = ROOT / "uploads"
@@ -29,10 +21,9 @@ UPLOADS.mkdir(exist_ok=True)
 app = FastAPI(
     title="CloudOps Sentinel — Enterprise Incident Response Self-RAG Copilot",
     version="2.0.0",
-    description="Adaptive Self-RAG copilot for cloud operations, production troubleshooting, and incident-response runbooks.",
+    description="Self-RAG copilot for cloud operations, production troubleshooting, and incident-response runbooks.",
 )
 
-# Enable CORS for local and web frontend clients
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -44,25 +35,16 @@ app.add_middleware(
 
 @app.on_event("startup")
 def startup():
-    """Initializes the SQLite audit database on application startup."""
     init_db()
 
 
 @app.get("/api/health")
 def health():
-    """Liveness and readiness health check endpoint."""
     return {"status": "ok", "service": "cloudops-sentinel-self-rag"}
 
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(payload: ChatRequest):
-    """
-    Submits an incident or operational troubleshooting question to the Self-RAG engine.
-
-    Executes question contextualization, adaptive vector retrieval, relevance self-grading,
-    query rewriting, grounded answer generation, and hallucination verification.
-    Logs every request and trace to the local SQLite audit database.
-    """
     try:
         result = await run_in_threadpool(run_self_rag, payload.question.strip(), payload.thread_id.strip())
         await run_in_threadpool(save_audit, payload.question, result)
@@ -73,12 +55,9 @@ async def chat(payload: ChatRequest):
 
 @app.post("/api/upload", response_model=UploadResponse)
 async def upload(file: UploadFile = File(...)):
-    """
-    Uploads an operational runbook (PDF, TXT, MD, DOCX) and indexes it into Pinecone.
-    """
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in SUPPORTED:
-        raise HTTPException(status_code=400, detail="Supported file formats: PDF, TXT, MD, DOCX")
+        raise HTTPException(status_code=400, detail="Supported: PDF, TXT, MD, DOCX")
     safe_name = Path(file.filename).name
     target = UPLOADS / safe_name
     with target.open("wb") as f:
@@ -92,7 +71,6 @@ async def upload(file: UploadFile = File(...)):
 
 @app.get("/api/audits")
 def audits(limit: int = 20):
-    """Retrieves recent incident query audits and verification traces."""
     return latest_audits(min(max(limit, 1), 100))
 
 
