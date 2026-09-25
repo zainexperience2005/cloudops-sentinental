@@ -38,6 +38,7 @@ class ChatResponse(BaseModel):
     used_web_search: bool = Field(default=False, description="Flag indicating if external web search was invoked.")
     support_status: str = Field(default="", description="Grounding status ('fully_supported', 'partially_supported', 'no_support').")
     usefulness: str = Field(default="", description="Usability verdict ('useful' or 'not_useful').")
+    action_requires_approval: bool = Field(default=False, description="True if destructive commands require human SRE authorization.")
     sources: List[SourceItem] = Field(default_factory=list, description="List of cited documents and URLs.")
     trace: List[str] = Field(default_factory=list, description="Diagnostic execution trace tracking graph steps.")
     thread_id: str = Field(..., description="Session thread ID.")
@@ -49,3 +50,21 @@ class UploadResponse(BaseModel):
     filename: str = Field(..., description="Name of the file uploaded.")
     chunks_indexed: int = Field(..., description="Number of vector chunks successfully indexed into Pinecone.")
     namespace: str = Field(..., description="Pinecone namespace containing the indexed vectors.")
+
+
+class FeedbackRequest(BaseModel):
+    """Payload for submitting operator feedback and corrections."""
+    question: str = Field(..., description="The query for which feedback is provided.")
+    answer: str = Field(..., description="The generated answer being evaluated.")
+    rating: str = Field(..., description="User rating: 'upvote' or 'downvote'.")
+    corrected_answer: Optional[str] = Field(default=None, description="Ground-truth human correction if answer was flawed.")
+    category: Optional[str] = Field(default=None, description="CloudOps category (e.g. Kubernetes, Redis, Cost).")
+    comments: Optional[str] = Field(default=None, description="Additional context or failure details.")
+    thread_id: Optional[str] = Field(default=None, description="Session thread identifier.")
+
+
+class FeedbackResponse(BaseModel):
+    """Confirmation response for recorded feedback."""
+    status: str = Field(default="ok", description="Status code.")
+    feedback_id: int = Field(..., description="Unique ID of stored feedback record.")
+    message: str = Field(..., description="Acknowledgement message.")

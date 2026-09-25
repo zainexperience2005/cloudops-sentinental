@@ -16,11 +16,15 @@ DATASET_PATH = EVALS_DIR / "golden_dataset.json"
 
 
 def load_raw_golden_dataset() -> List[Dict[str, Any]]:
-    """Loads the raw 50-item golden dataset from JSON."""
+    """Loads the raw golden dataset from JSON."""
     if not DATASET_PATH.exists():
         raise FileNotFoundError(f"Golden dataset not found at {DATASET_PATH}")
     with open(DATASET_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+# Backward-compatible alias
+load_golden_dataset = load_raw_golden_dataset
 
 
 def get_golden_test_cases(

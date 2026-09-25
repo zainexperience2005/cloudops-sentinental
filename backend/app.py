@@ -81,6 +81,35 @@ def delete_audits():
     return {"status": "ok", "message": "Database audit records cleaned successfully"}
 
 
+@app.post("/api/feedback", response_model=FeedbackResponse)
+async def submit_feedback(payload: FeedbackRequest):
+    """Submits human SRE feedback or correction to fuel the evaluation dataset flywheel."""
+    try:
+        fb = await run_in_threadpool(
+            save_feedback,
+            question=payload.question,
+            answer=payload.answer,
+            rating=payload.rating,
+            corrected_answer=payload.corrected_answer,
+            category=payload.category,
+            comments=payload.comments,
+            thread_id=payload.thread_id,
+        )
+        return FeedbackResponse(
+            status="ok",
+            feedback_id=fb["id"],
+            message="Feedback saved successfully. Added to dataset improvement queue.",
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/feedback")
+def list_feedback():
+    """Retrieves all feedback records currently in the improvement queue."""
+    return get_unprocessed_feedback()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=True)

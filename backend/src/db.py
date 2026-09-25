@@ -68,6 +68,38 @@ class RagAudit(Base):
         }
 
 
+class UserFeedback(Base):
+    """
+    SQLAlchemy ORM Model representing human operator feedback, corrections, and quality ratings.
+    """
+    __tablename__ = "user_feedback"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    created_at: Mapped[str] = mapped_column(String(64), nullable=False)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    answer: Mapped[str] = mapped_column(Text, nullable=False)
+    rating: Mapped[str] = mapped_column(String(32), nullable=False)  # 'upvote' or 'downvote'
+    corrected_answer: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    category: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    comments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    thread_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    synced_to_golden_dataset: Mapped[int] = mapped_column(Integer, default=0)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "question": self.question,
+            "answer": self.answer,
+            "rating": self.rating,
+            "corrected_answer": self.corrected_answer or "",
+            "category": self.category or "General SRE",
+            "comments": self.comments or "",
+            "thread_id": self.thread_id or "",
+            "synced_to_golden_dataset": bool(self.synced_to_golden_dataset),
+        }
+
+
 def _get_normalized_db_url() -> str:
     """
     Normalizes the database URL to use the appropriate SQLAlchemy driver.
@@ -155,3 +187,57 @@ def latest_audits(limit: int = 25) -> List[dict]:
             .all()
         )
         return [r.to_dict() for r in records]
+
+
+def save_feedback(
+    question: str,
+    answer: str,
+    rating: str,
+    corrected_answer: Optional[str] = None,
+    category: Optional[str] = None,
+    comments: Optional[str] = None,
+    thread_id: Optional[str] = None,
+) -> dict:
+    """Persists an SRE operator feedback item."""
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        feedback = UserFeedback(
+            created_at=datetime.now(timezone.utc).isoformat(),
+            question=question,
+            answer=answer,
+            rating=rating,
+            corrected_answer=corrected_answer,
+            category=category,
+            comments=comments,
+            thread_id=thread_id,
+            synced_to_golden_dataset=0,
+        )
+        session.add(feedback)
+        session.commit()
+        session.refresh(feedback)
+        return feedback.to_dict()
+
+
+def get_unprocessed_feedback() -> List[dict]:
+    """Retrieves all feedback items that have not yet been synced to the golden evaluation dataset."""
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        records = (
+            session.query(UserFeedback)
+            .filter(UserFeedback.synced_to_golden_dataset == 0)
+            .order_by(UserFeedback.id.asc())
+            .all()
+        )
+        return [r.to_dict() for r in records]
+
+
+def mark_feedback_synced(feedback_ids: List[int]) -> None:
+    """Marks specified feedback IDs as synced into the golden dataset."""
+    if not feedback_ids:
+        return
+    session_factory = get_session_factory()
+    with session_factory() as session:
+        session.query(UserFeedback).filter(UserFeedback.id.in_(feedback_ids)).update(
+            {"synced_to_golden_dataset": 1}, synchronize_session=False
+        )
+        session.commit()

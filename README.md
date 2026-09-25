@@ -31,6 +31,7 @@ Unlike conventional RAG pipelines that blindly retrieve chunks and naively gener
 - [API Reference](#-api-reference)
 - [Self-RAG Decision Nodes Breakdown](#-self-rag-decision-nodes-breakdown)
 - [Enterprise Evaluation & Benchmark Suite (DeepEval & Ragas)](#-enterprise-evaluation--benchmark-suite)
+- [Loop Engineering & Continuous Self-Optimization](#-loop-engineering--continuous-self-optimization)
 - [Observability & Audit Trail](#-observability--audit-trail)
 - [License](#-license)
 
@@ -470,6 +471,30 @@ python -m evals.run_all_evals --category safety --samples 4
 python -m evals.run_all_evals --category agentic --samples 3
 python -m evals.run_all_evals --category summarization --samples 2
 python -m evals.run_all_evals --category ragas --samples 3
+```
+
+---
+
+## 🔄 Loop Engineering & Continuous Self-Optimization
+
+CloudOps Sentinel integrates **4 closed-loop feedback systems** to guarantee operational reliability:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        THE 4 LOOPS OF CLOUDOPS SENTINEL                                │
+├────────────────────────────────┬───────────────────────────────────────────────────────┤
+│ 1. Runtime In-Graph Loop       │ Self-correction, dynamic query rewrites, grounding    │
+│                                │ revisions, and destructive command safety checks.      │
+├────────────────────────────────┼───────────────────────────────────────────────────────┤
+│ 2. CI/CD AI Quality Gate       │ GitHub Actions automated benchmark assertion on PRs.  │
+│                                │ File: `.github/workflows/eval-gate.yml`               │
+├────────────────────────────────┼───────────────────────────────────────────────────────┤
+│ 3. Production Feedback Flywheel│ Ingests operator corrections from `/api/feedback` and  │
+│                                │ auto-appends to `golden_dataset.json`.                 │
+├────────────────────────────────┼───────────────────────────────────────────────────────┤
+│ 4. Autonomous Prompt Tuning    │ LLM Meta-Optimizer analyzes DeepEval failure reasons   │
+│                                │ and synthesizes refined prompt constraints.            │
+└────────────────────────────────┴───────────────────────────────────────────────────────┘
 ```
 
 ---

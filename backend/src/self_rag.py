@@ -132,6 +132,7 @@ class RAGState(TypedDict, total=False):
     web_rewrites: int
     source_mode: Literal["internal", "web", "direct", "none"]
     used_web_search: bool
+    action_requires_approval: bool
     trace: List[str]
 
 
@@ -733,6 +734,53 @@ def no_answer(state: RAGState) -> dict:
     }
 
 
+DESTRUCTIVE_PATTERNS = [
+    "rm -rf",
+    "drop table",
+    "drop database",
+    "kubectl delete ns",
+    "kubectl delete namespace",
+    "kubectl delete all",
+    "terraform destroy",
+    "aws s3 rb --force",
+    "flushall",
+    "flushdb",
+    "delete from",
+    "truncate table",
+]
+
+
+def verify_destructive_actions(state: RAGState) -> dict:
+    """
+    Loop Engineering Guard: Inspects generated remediation for high-risk/destructive CLI operations.
+    If detected, flags human-in-the-loop requirement and wraps the answer with an operational safety banner.
+    """
+    answer = state.get("answer", "")
+    answer_lower = answer.lower()
+    
+    detected_risks = [pat for pat in DESTRUCTIVE_PATTERNS if pat in answer_lower]
+    
+    if detected_risks:
+        banner = (
+            "⚠️ **[HUMAN-IN-THE-LOOP APPROVAL REQUIRED]**\n"
+            f"> Critical destructive command patterns detected: `{', '.join(detected_risks)}`.\n"
+            "> This operational step must be authorized by the Lead Site Reliability Engineer before execution.\n\n"
+        )
+        if not answer.startswith("⚠️ **[HUMAN-IN-THE-LOOP"):
+            answer = banner + answer
+            
+        return {
+            "answer": answer,
+            "action_requires_approval": True,
+            "trace": _trace(state, f"Safety Loop: Detected destructive command patterns {detected_risks} (Flagged for human approval)"),
+        }
+        
+    return {
+        "action_requires_approval": False,
+        "trace": _trace(state, "Safety Loop: Operational command validation passed (No unapproved destructive actions)"),
+    }
+
+
 # ============================================================================
 # Graph Construction & Compilation
 # ============================================================================
@@ -759,6 +807,7 @@ def build_graph():
     g.add_node("support", check_support)
     g.add_node("revise", revise_answer)
     g.add_node("usefulness", check_usefulness)
+    g.add_node("verify_destructive", verify_destructive_actions)
     g.add_node("no_answer", no_answer)
     g.add_node("commit_memory", commit_memory)
 
@@ -770,7 +819,7 @@ def build_graph():
         route_after_decide,
         {"direct": "direct", "retrieve": "retrieve"}
     )
-    g.add_edge("direct", "commit_memory")
+    g.add_edge("direct", "verify_destructive")
 
     # 3. Wire Internal Retrieval & Relevance Grading
     g.add_edge("retrieve", "grade")
@@ -802,12 +851,13 @@ def build_graph():
         "usefulness",
         route_after_usefulness,
         {
-            "end": "commit_memory",
+            "end": "verify_destructive",
             "rewrite_internal": "rewrite_internal",
             "rewrite_web": "rewrite_web",
             "no_answer": "no_answer",
         }
     )
+    g.add_edge("verify_destructive", "commit_memory")
     g.add_edge("no_answer", "commit_memory")
     g.add_edge("commit_memory", END)
 
@@ -910,6 +960,7 @@ def run_self_rag(question: str, thread_id: str) -> dict:
         "used_web_search": bool(result.get("used_web_search")),
         "support_status": result.get("support_status", ""),
         "usefulness": result.get("usefulness", ""),
+        "action_requires_approval": bool(result.get("action_requires_approval", False)),
         "sources": _sources(rel_docs),
         "context": result.get("context", ""),
         "retrieval_chunks": chunks,

@@ -154,3 +154,29 @@ Diagnostic Feedback & Recommended Tuning:
   -> [FIX - Faithfulness]: Unsupported claims detected in generated remediation.
      Action: Refine generate_from_context system prompt with strict grounding constraints.
 ```
+
+---
+
+## 🔄 Loop Engineering Architecture (The 4 Loops)
+
+CloudOps Sentinel implements **4 closed feedback loops** for self-correcting agentic behavior, evaluation gates, and continuous self-improvement:
+
+```
+1. Loop 1: In-Graph Self-Correction & Verification Loop
+   - Node: `verify_destructive` checks commands against destructive CLI patterns (`rm -rf`, `DROP TABLE`, `kubectl delete ns`).
+   - Flags `action_requires_approval = True` when high-impact actions are planned.
+   - Reviser Loop: Automatically strips ungrounded statements if hallucination is detected.
+
+2. Loop 2: CI/CD AI Quality Gate (.github/workflows/eval-gate.yml)
+   - Triggers on PRs and pushes to evaluate the pipeline with DeepEval & Ragas.
+   - Fails the build if any safety metric < 1.0 or RAG Triad < 0.70.
+
+3. Loop 3: Production Feedback Flywheel (evals/feedback_flywheel.py)
+   - Captures operator upvotes/downvotes and corrected answers via `POST /api/feedback`.
+   - Automatically synchronizes validated SRE corrections into `golden_dataset.json`.
+
+4. Loop 4: Autonomous Prompt & Parameter Meta-Optimizer (evals/auto_prompt_tuner.py)
+   - Ingests failure audit logs and judge feedback from DeepEval runs.
+   - Autonomously refines system prompts and retrieval parameters via LLM Meta-Optimization.
+   - Command: `python -m evals.auto_prompt_tuner --samples 3`
+```
