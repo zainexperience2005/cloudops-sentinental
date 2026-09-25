@@ -187,24 +187,27 @@ The repository includes pre-built incident response runbooks in [`documents/`](f
 
 ```plaintext
 cloudops-sentinental/
-├── app.py                      # FastAPI REST application entrypoint
-├── data_ingestion.py           # CLI script for bulk embedding & Pinecone indexing
-├── requirements.txt            # Python dependencies
-├── Dockerfile                  # Containerized deployment specification
-├── flow.md                     # Simplified flow diagram
-├── .env.example                # Template environment variables
-├── documents/                  # Default operational runbooks & incident SOPs
-│   ├── checkout-api-runbook.md
-│   ├── deployment-rollback-sop.md
-│   └── payments-high-cpu-runbook.md
-├── src/                        # Core Python package
-│   ├── __init__.py
-│   ├── config.py               # Pydantic Settings & environment validation
-│   ├── db.py                   # SQLite audit trail & logging helpers
-│   ├── ingestion.py            # Multi-format doc parsing (PDF, MD, DOCX) & chunking
-│   ├── models.py               # Pydantic REST API request/response schemas
-│   ├── self_rag.py             # LangGraph Self-RAG state machine & decision nodes
-│   └── vectorstore.py          # Pinecone serverless vector index client
+├── backend/                    # FastAPI, LangGraph & Pinecone backend service
+│   ├── app.py                  # FastAPI REST application entrypoint
+│   ├── data_ingestion.py       # CLI script for bulk embedding & Pinecone indexing
+│   ├── requirements.txt        # Python dependencies
+│   ├── Dockerfile              # Containerized deployment specification
+│   ├── flow.md                 # Self-RAG logic flow diagram
+│   ├── .env.example            # Backend environment variables template
+│   ├── documents/              # Operational runbooks & incident SOPs
+│   │   ├── checkout-api-runbook.md
+│   │   ├── deployment-rollback-sop.md
+│   │   └── payments-high-cpu-runbook.md
+│   ├── src/                    # Core Python modules
+│   │   ├── __init__.py
+│   │   ├── config.py           # Pydantic Settings & environment validation
+│   │   ├── db.py               # SQLite audit trail & logging helpers
+│   │   ├── ingestion.py        # Multi-format doc parsing (PDF, MD, DOCX) & chunking
+│   │   ├── models.py           # Pydantic REST API request/response schemas
+│   │   ├── self_rag.py         # LangGraph Self-RAG state machine & decision nodes
+│   │   └── vectorstore.py      # Pinecone serverless vector index client
+│   ├── docs/                   # Architecture diagrams & visuals
+│   └── data/                   # Local SQLite state (audit.db & session memory)
 ├── frontend/                   # React + Vite interactive operator dashboard
 │   ├── src/
 │   │   ├── components/         # ChatView, AuditsView, SourcesViewer, Visualizer
@@ -213,7 +216,9 @@ cloudops-sentinental/
 │   │   └── App.tsx
 │   ├── package.json
 │   └── vite.config.ts
-└── data/                       # Local SQLite state (audit.db & session memory)
+├── .gitignore                  # Global repository git ignore
+├── LICENSE                     # MIT License
+└── README.md                   # Project documentation
 ```
 
 ---
@@ -234,13 +239,14 @@ cloudops-sentinental/
 
 ### 2. Environment Configuration
 
-Copy the example environment file and configure your API credentials:
+Navigate to the `backend` directory, copy the example environment file, and configure your credentials:
 
 ```bash
+cd backend
 cp .env.example .env
 ```
 
-Open `.env` and fill in your keys:
+Open `backend/.env` and fill in your keys:
 
 ```ini
 # OpenAI Model & Embeddings
@@ -276,6 +282,8 @@ LANGSMITH_PROJECT=cloudops-sentinel
 ---
 
 ### 3. Backend Installation & Runbook Ingestion
+
+From the `backend` directory:
 
 1. **Create and activate a virtual environment**:
    ```bash
