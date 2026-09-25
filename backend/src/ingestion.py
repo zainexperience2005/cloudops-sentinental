@@ -74,9 +74,9 @@ def ingest_file(path: Path) -> int:
     """
     docs = load_file(path)
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
-        chunk_overlap=160,
-        separators=["\n\n", "\n", ". ", " ", ""],
+        chunk_size=600,
+        chunk_overlap=100,
+        separators=["\n## ", "\n\n", "\n", ". ", " ", ""],
     )
     chunks = splitter.split_documents(docs)
 
