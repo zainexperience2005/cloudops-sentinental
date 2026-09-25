@@ -18,6 +18,7 @@ def main():
     print("=" * 68)
     print("CloudOps Sentinel - Pinecone Knowledge Base Ingestion")
     print("=" * 68)
+    print(f"OpenAI LLM model       : {s.openai_model}")
     print(f"OpenAI embedding model : {s.embedding_model}")
     print(f"Embedding dimension    : {s.embedding_dimension}")
     print(f"Pinecone index         : {s.pinecone_index_name}")

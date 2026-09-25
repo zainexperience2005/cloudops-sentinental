@@ -58,6 +58,11 @@ cover/
 # Databases & Local state:
 *.log
 local_settings.py
+.deepeval/
+.deepeval-cache/
+*.sqlite
+*.db
+eval_results*.json
 *.db
 *.db-shm
 *.db-wal

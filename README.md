@@ -30,6 +30,7 @@ Unlike conventional RAG pipelines that blindly retrieve chunks and naively gener
   - [5. Running with Docker](#5-running-with-docker)
 - [API Reference](#-api-reference)
 - [Self-RAG Decision Nodes Breakdown](#-self-rag-decision-nodes-breakdown)
+- [Enterprise Evaluation & Benchmark Suite (DeepEval & Ragas)](#-enterprise-evaluation--benchmark-suite)
 - [Observability & Audit Trail](#-observability--audit-trail)
 - [License](#-license)
 
@@ -162,7 +163,7 @@ graph TD
 - **Autonomous Web Fallback via Tavily**: When internal runbooks lack documentation for third-party cloud incidents (e.g., AWS service disruptions or Stripe API degradations), the system queries live web evidence.
 - **Hallucination Prevention**: Performs explicit claim-by-claim verification (`check_support`), looping back to `revise_answer` if ungrounded recommendations appear.
 - **Multi-Turn Incident Memory**: Checkpoints session history via `SqliteSaver`, allowing engineers to ask follow-up questions (e.g., *"What were the rollback commands again?"* or *"Apply that to pod 3"*).
-- **Comprehensive Audit Trail**: Every Q&A turn records latency, confidence scores, routing verdicts, and execution traces in SQLite (`data/audit.db`).
+- **Comprehensive Audit Trail**: Every Q&A turn records latency, confidence scores, routing verdicts, and execution traces in Neon Serverless PostgreSQL via SQLAlchemy.
 - **Interactive Fullstack Dashboard**: Modern React + Vite frontend with real-time graph step visualization, drag-and-drop document upload, and audit inspection.
 
 ---
@@ -423,6 +424,53 @@ Every node in [`src/self_rag.py`](file:///d:/Agentic%20AI%20Projects/FDE%20Proje
 | `usefulness` | `check_usefulness` | Validates that the answer directly resolves the incident question. |
 | `no_answer` | `no_answer` | Safe operational abort if neither internal nor external evidence is reliable. |
 | `commit_memory` | `commit_memory` | Checkpoints the exchange to SQLite for multi-turn conversational recall. |
+
+---
+
+## 🎯 Enterprise Evaluation & Benchmark Suite (DeepEval & Ragas)
+
+CloudOps Sentinel features an automated evaluation and red-teaming framework measuring **20+ production metrics** across **6 distinct evaluation categories**, validated against a **62-item Golden Dataset** (`backend/evals/golden_dataset.json`).
+
+For full architectural documentation, see [`backend/evals/README.md`](backend/evals/README.md).
+
+### Evaluation Categories & Metrics:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                      CLOUDOPS SENTINEL EVALUATION MATRIX                         │
+├─────────────────────────┬────────────────────────────────────────────────────────┤
+│ 1. RAG Triad & CRAG     │ AnswerRelevancy, Faithfulness, ContextualRelevancy,    │
+│                         │ ContextualPrecision, ContextualRecall                  │
+├─────────────────────────┼────────────────────────────────────────────────────────┤
+│ 2. Conversational RAG   │ TurnRelevancy, TurnFaithfulness, TurnContextPrecision, │
+│                         │ TurnContextRecall, ConversationCompleteness, Retention │
+├─────────────────────────┼────────────────────────────────────────────────────────┤
+│ 3. Safety & Guardrails  │ Bias, Toxicity, NonAdvice, Misuse, PIILeakage, Role    │
+├─────────────────────────┼────────────────────────────────────────────────────────┤
+│ 4. Agentic & Behavioral │ ToolUse, GoalAccuracy, PromptAlignment, TopicAdherence │
+├─────────────────────────┼────────────────────────────────────────────────────────┤
+│ 5. Summarization        │ Summarization (Alignment + Inclusion), Hallucination   │
+├─────────────────────────┼────────────────────────────────────────────────────────┤
+│ 6. Ragas Benchmark      │ Faithfulness, Answer Relevancy, Precision, Recall      │
+└─────────────────────────┴────────────────────────────────────────────────────────┘
+```
+
+### Running Evaluations via Super Runner CLI:
+
+```powershell
+cd backend
+
+# Execute all evaluation categories sequentially (Unified Executive Dashboard)
+python -m evals.run_all_evals --category all --samples 3
+
+# Execute by specific category
+python -m evals.run_all_evals --category rag --samples 5
+python -m evals.run_all_evals --category conversational --samples 2
+python -m evals.run_all_evals --category safety --samples 4
+python -m evals.run_all_evals --category agentic --samples 3
+python -m evals.run_all_evals --category summarization --samples 2
+python -m evals.run_all_evals --category ragas --samples 3
+```
 
 ---
 

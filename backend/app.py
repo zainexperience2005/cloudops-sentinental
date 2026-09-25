@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.models import ChatRequest, ChatResponse, UploadResponse
 from src.self_rag import run_self_rag
 from src.ingestion import ingest_file, namespace, SUPPORTED
-from src.db import init_db, save_audit, latest_audits
+from src.db import init_db, save_audit, latest_audits, clean_db
 from dotenv import load_dotenv
 
 load_dotenv()  # Load environment variables from .env file
@@ -72,6 +72,13 @@ async def upload(file: UploadFile = File(...)):
 @app.get("/api/audits")
 def audits(limit: int = 20):
     return latest_audits(min(max(limit, 1), 100))
+
+
+@app.delete("/api/audits")
+def delete_audits():
+    """Cleans all audit records from the Neon database."""
+    clean_db()
+    return {"status": "ok", "message": "Database audit records cleaned successfully"}
 
 
 if __name__ == "__main__":

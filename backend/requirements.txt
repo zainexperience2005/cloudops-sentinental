@@ -4,11 +4,14 @@ python-multipart
 jinja2
 python-dotenv
 pydantic
+sqlalchemy>=2.0.0
+psycopg[binary]>=3.1.0
 langchain
 langchain-core
 langchain-community
 langchain-text-splitters
 langchain-openai
+langchain-google-genai>=2.0.0
 langchain-pinecone>=0.2.0
 langgraph
 langgraph-checkpoint-sqlite
