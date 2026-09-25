@@ -74,7 +74,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.sqlite import SqliteSaver
 from tavily import TavilyClient
@@ -185,19 +185,20 @@ class QueryRewrite(BaseModel):
 # Core Helper Utilities
 # ============================================================================
 
-def _llm() -> ChatOpenAI:
+def _llm() -> ChatGoogleGenerativeAI:
     """
-    Initializes and returns the primary ChatOpenAI model instance.
+    Initializes and returns the primary ChatGoogleGenerativeAI model instance.
 
     Uses temperature=0 to ensure deterministic, reproducible evaluations
     and minimize hallucination during incident response procedures.
     """
     s = get_settings()
-    if not s.openai_api_key:
-        raise RuntimeError("OPENAI_API_KEY is not configured in environment or settings.")
-    return ChatOpenAI(
-        api_key=s.openai_api_key,
-        model=s.openai_model,
+    api_key = s.gemini_api_key or s.google_api_key
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY or GOOGLE_API_KEY is not configured in environment or settings.")
+    return ChatGoogleGenerativeAI(
+        model=s.gemini_model,
+        google_api_key=api_key,
         temperature=0,
     )
 

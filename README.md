@@ -4,7 +4,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
 [![LangGraph](https://img.shields.io/badge/LangGraph-State_Machine-orange.svg)](https://langchain-ai.github.io/langgraph/)
 [![Pinecone](https://img.shields.io/badge/Pinecone-Serverless_Vector_DB-000000.svg?logo=pinecone)](https://www.pinecone.io/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o_/_Embeddings-412991.svg?logo=openai)](https://openai.com/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash_/_Embeddings-4285F4.svg?logo=google)](https://deepmind.google/technologies/gemini/)
 [![React + Vite](https://img.shields.io/badge/Frontend-React_18_+_Vite-61DAFB.svg?logo=react)](https://vitejs.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -156,7 +156,7 @@ graph TD
 ## ✨ Key Features
 
 - **Adaptive Retrieval**: Skips costly vector similarity search for trivial inquiries and prioritizes authoritative internal SOPs for cloud operations.
-- **Pinecone Serverless Vector Store**: Fast, scalable cosine similarity search partitioned by namespace (`incident-runbooks`) using OpenAI's `text-embedding-3-large` (3072 dimensions).
+- **Pinecone Serverless Vector Store**: Fast, scalable cosine similarity search partitioned by namespace (`incident-runbooks`) using Google's `models/text-embedding-004` (768 dimensions).
 - **Document Self-Grading**: LLM acts as an operational judge, discarding noise and keeping only chunks that directly inform incident troubleshooting.
 - **Iterative Query Rewriting**: Translates raw operator queries containing jargon into keyword-dense embeddings representations.
 - **Autonomous Web Fallback via Tavily**: When internal runbooks lack documentation for third-party cloud incidents (e.g., AWS service disruptions or Stripe API degradations), the system queries live web evidence.
@@ -230,7 +230,7 @@ cloudops-sentinental/
 - **Python**: Version 3.10, 3.11, or 3.12
 - **Node.js**: Version 18+ (for frontend dashboard)
 - **API Keys**:
-  - [OpenAI API Key](https://platform.openai.com/)
+  - [Google Gemini API Key](https://aistudio.google.com/)
   - [Pinecone API Key](https://www.pinecone.io/)
   - [Tavily API Key](https://tavily.com/) (for fallback internet search)
   - [LangSmith API Key](https://smith.langchain.com/) *(optional, for observability)*
@@ -249,14 +249,14 @@ cp .env.example .env
 Open `backend/.env` and fill in your keys:
 
 ```ini
-# OpenAI Model & Embeddings
-OPENAI_MODEL=gpt-4o-mini
-EMBEDDING_MODEL=text-embedding-3-large
-EMBEDDING_DIMENSION=3072
-OPENAI_API_KEY=sk-...
+# Google Gemini Model & Embeddings
+GEMINI_MODEL=gemini-2.5-flash
+EMBEDDING_MODEL=models/text-embedding-004
+EMBEDDING_DIMENSION=768
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Pinecone Serverless Vector Store
-PINECONE_INDEX_NAME=cloudops-sentinel-openai-self-rag
+PINECONE_INDEX_NAME=cloudops-sentinel-gemini-self-rag
 PINECONE_NAMESPACE=incident-runbooks
 PINECONE_API_KEY=pcsk_...
 PINECONE_CLOUD=aws

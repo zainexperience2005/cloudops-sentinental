@@ -1,33 +1,33 @@
 """
-CloudOps Sentinel - Pinecone Vector Store & Embeddings Integration
-===================================================================
+CloudOps Sentinel - Pinecone Vector Store & Gemini Embeddings Integration
+==========================================================================
 
 This module manages the vector search infrastructure for CloudOps Sentinel,
-connecting OpenAI embeddings to Pinecone serverless vector indexes.
+connecting Google Gemini embeddings (text-embedding-004) to Pinecone serverless vector indexes.
 """
 
 from functools import lru_cache
 from pinecone import Pinecone, ServerlessSpec
-from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from src.config import get_settings
 
 
 @lru_cache
-def get_embeddings() -> OpenAIEmbeddings:
+def get_embeddings() -> GoogleGenerativeAIEmbeddings:
     """
-    Initializes and caches the OpenAI embeddings client.
+    Initializes and caches the Google Generative AI embeddings client.
 
-    Uses OpenAI's text-embedding-3-large model configured with the exact
-    vector dimensions specified in application configuration.
+    Uses Google's state-of-the-art models/text-embedding-004 model configured
+    with 768 vector dimensions for high-precision semantic retrieval.
     """
     s = get_settings()
-    if not s.openai_api_key:
-        raise RuntimeError("OPENAI_API_KEY is not configured in environment or settings.")
-    return OpenAIEmbeddings(
-        api_key=s.openai_api_key,
+    api_key = s.gemini_api_key or s.google_api_key
+    if not api_key:
+        raise RuntimeError("GEMINI_API_KEY or GOOGLE_API_KEY is not configured in environment or settings.")
+    return GoogleGenerativeAIEmbeddings(
         model=s.embedding_model,
-        dimensions=s.embedding_dimension,
+        google_api_key=api_key,
     )
 
 
