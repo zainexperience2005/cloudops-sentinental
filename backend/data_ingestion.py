@@ -10,17 +10,16 @@ DOCUMENTS_DIR = ROOT / "documents"
 def main():
     s = get_settings()
 
-    api_key = s.gemini_api_key or s.google_api_key
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY (or GOOGLE_API_KEY) is missing. Add it to your .env file.")
+    if not s.openai_api_key:
+        raise RuntimeError("OPENAI_API_KEY is missing. Add it to your .env file.")
     if not s.pinecone_api_key:
         raise RuntimeError("PINECONE_API_KEY is missing. Add it to your .env file.")
 
     print("=" * 68)
-    print("CloudOps Sentinel - Pinecone Knowledge Base Ingestion (Gemini)")
+    print("CloudOps Sentinel - Pinecone Knowledge Base Ingestion")
     print("=" * 68)
-    print(f"Gemini LLM model       : {s.gemini_model}")
-    print(f"Gemini embedding model : {s.embedding_model}")
+    print(f"OpenAI LLM model       : {s.openai_model}")
+    print(f"OpenAI embedding model : {s.embedding_model}")
     print(f"Embedding dimension    : {s.embedding_dimension}")
     print(f"Pinecone index         : {s.pinecone_index_name}")
     print(f"Pinecone namespace     : {s.pinecone_namespace}")

@@ -10,16 +10,15 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseModel):
-    # Google Gemini AI & Embeddings
-    gemini_api_key: str = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
-    google_api_key: str = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
-    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    embedding_model: str = os.getenv("EMBEDDING_MODEL", "models/text-embedding-004")
-    embedding_dimension: int = int(os.getenv("EMBEDDING_DIMENSION", "768"))
+    # OpenAI Model & Embeddings
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    embedding_model: str = os.getenv("EMBEDDING_MODEL", "text-embedding-3-large")
+    embedding_dimension: int = int(os.getenv("EMBEDDING_DIMENSION", "3072"))
 
     # Pinecone Vector DB
     pinecone_api_key: str = os.getenv("PINECONE_API_KEY", "")
-    pinecone_index_name: str = os.getenv("PINECONE_INDEX_NAME", "cloudops-sentinel-gemini-self-rag")
+    pinecone_index_name: str = os.getenv("PINECONE_INDEX_NAME", "cloudops-sentinel-openai-self-rag")
     pinecone_namespace: str = os.getenv("PINECONE_NAMESPACE", "incident-runbooks")
     pinecone_cloud: str = os.getenv("PINECONE_CLOUD", "aws")
     pinecone_region: str = os.getenv("PINECONE_REGION", "us-east-1")
